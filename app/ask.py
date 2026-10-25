@@ -70,7 +70,11 @@ def main() -> None:
         return
 
     print(f"[質問] {args.question}\n")
-    # ...ここから下は今のままでよい
+    try:
+        print(ask(args.question))
+    except errors.APIError as e:
+        print(api_error_message(e.code, e.message))
+        raise SystemExit(1)
 
 if __name__ == "__main__":
     main()
