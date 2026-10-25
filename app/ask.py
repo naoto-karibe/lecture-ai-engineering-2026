@@ -64,16 +64,16 @@ def chat() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="素のLLMに質問する")
     parser.add_argument("question", nargs="?", default=DEFAULT_QUESTION)
+    parser.add_argument("--chat", action="store_true", help="会話履歴を保って続けて質問する")
     args = parser.parse_args()
 
     print(f"[model] {MODEL}")
-    print(f"[質問] {args.question}\n")
-    try:
-        print(ask(args.question))
-    except errors.APIError as e:
-        print(api_error_message(e.code, e.message))
-        raise SystemExit(1)
+    if args.chat:
+        chat()
+        return
 
+    print(f"[質問] {args.question}\n")
+    # ...ここから下は今のままでよい
 
 if __name__ == "__main__":
     main()
