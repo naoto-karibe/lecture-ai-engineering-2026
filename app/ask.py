@@ -13,7 +13,7 @@
 import argparse
 
 from google import genai
-from google.genai import errors
+from google.genai import errors, types
 
 from app.config import MODEL, api_error_message, get_api_key
 
@@ -30,6 +30,36 @@ def ask(question: str) -> str:
 
     return response.text
 
+def print_usage(response) -> None:
+    """入力・出力トークン数を表示する（演習で作った部分を関数にまとめたもの）。"""
+    usage = response.usage_metadata
+    print(f"\n[tokens] 入力 {usage.prompt_token_count} / 出力 {usage.candidates_token_count}")
+
+def chat() -> None:
+    """会話履歴を自分で持ち、続けて質問できるようにする。"""
+    client = genai.Client(api_key=get_api_key())
+    history: list[types.Content] = []  # これまでのやりとりを、古い順に積んでいく
+
+    print("続けて質問できます（空行か exit で終了）")
+    while True:
+        question = input("\n質問> ").strip()
+        if question in ("", "exit"):
+            break
+
+        # ポイント1: 新しい質問を履歴に足し、履歴をまるごと送る
+        history.append(types.Content(role="user", parts=[types.Part(text=question)]))
+        try:
+            response = client.models.generate_content(model=MODEL, contents=history)
+        except errors.APIError as e:
+            print(api_error_message(e.code, e.message))
+            history.pop()  # 失敗した質問は履歴から外し、送り直せるようにする
+            continue
+
+        print(response.text)
+        print_usage(response)
+
+        # ポイント2: モデルの答えも履歴に足す（role は "model"）
+        history.append(types.Content(role="model", parts=[types.Part(text=response.text)]))
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="素のLLMに質問する")
