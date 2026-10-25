@@ -75,5 +75,7 @@ def main() -> None:
     print(f"[質問] {args.question}\n")
     # ...ここから下は今のままでよい
 
+    print_usage(response)
+
 if __name__ == "__main__":
     main()
